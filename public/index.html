@@ -34,7 +34,11 @@
 let state = { position: 0, goal: 2 };
 
 // detect if running on Vercel or local
-const API_BASE = window.location.hostname.includes("localhost") ? "" : "/api";
+const API_BASE =
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "localhost"
+    ? ""
+    : "/api";
 
 function draw() {
   let grid = "";
@@ -49,7 +53,8 @@ function draw() {
 
 async function reset() {
   const res = await fetch(`${API_BASE}/reset`);
-  state = await res.json();
+  const data = await res.json();
+  state = data.state;
   draw();
 }
 
@@ -76,7 +81,7 @@ async function autoPlay() {
 
 draw();
 </script>
-</script>
+
 
 </body>
 </html>
