@@ -2,7 +2,8 @@ import sys
 import os
 
 # Fix import path
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(BASE_DIR)
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -12,8 +13,10 @@ from agent import SimpleAgent
 
 app = FastAPI()
 
-# ✅ Serve frontend (IMPORTANT FIX)
-app.mount("/", StaticFiles(directory="public", html=True), name="static")
+# ✅ FIX: Absolute path for Vercel
+STATIC_DIR = os.path.join(BASE_DIR, "public")
+
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
 # Create environment + agent
 env = DeliveryEnv()
