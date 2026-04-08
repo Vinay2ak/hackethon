@@ -3,20 +3,27 @@ import os
 
 # Fix import path
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-sys.path.append(BASE_DIR)
+sys.path.insert(0, BASE_DIR)
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from env import DeliveryEnv
 from agent import SimpleAgent
 
 app = FastAPI()
 
-# ✅ FIX: Absolute path for Vercel
+# ✅ Correct static path
 STATIC_DIR = os.path.join(BASE_DIR, "public")
 
-app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+# Serve static files at /static
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Serve index.html manually at "/"
+@app.get("/")
+def home():
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 # Create environment + agent
 env = DeliveryEnv()
@@ -26,8 +33,7 @@ agent = SimpleAgent()
 # 🔄 Reset
 @app.get("/reset")
 def reset():
-    result = env.reset()
-    return {"state": result}
+    return {"state": env.reset()}
 
 
 # 🎮 Manual step
@@ -35,11 +41,7 @@ def reset():
 def step(action: int):
     try:
         state, reward, done = env.step(action)
-        return {
-            "state": state,
-            "reward": reward,
-            "done": done
-        }
+        return {"state": state, "reward": reward, "done": done}
     except Exception as e:
         return {"error": str(e)}
 
@@ -50,11 +52,7 @@ def auto():
     try:
         action = agent.choose_action(env.state())
         state, reward, done = env.step(action)
-        return {
-            "state": state,
-            "reward": reward,
-            "done": done
-        }
+        return {"state": state, "reward": reward, "done": done}
     except Exception as e:
         return {"error": str(e)}
 
