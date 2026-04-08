@@ -1,32 +1,23 @@
 import sys
 import os
-from pathlib import Path
 
 # Fix import path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from env import DeliveryEnv
 from agent import SimpleAgent
 
 app = FastAPI()
 
+# ✅ Serve frontend (IMPORTANT FIX)
+app.mount("/", StaticFiles(directory="public", html=True), name="static")
+
 # Create environment + agent
 env = DeliveryEnv()
 agent = SimpleAgent()
-
-
-# 🏠 Serve UI
-@app.get("/", response_class=HTMLResponse)
-def home():
-    try:
-        BASE_DIR = Path(__file__).resolve().parent.parent
-        file_path = BASE_DIR / "public" / "index.html"
-        return file_path.read_text(encoding="utf-8")   # ✅ FIXED HERE
-    except Exception as e:
-        return f"ERROR: {str(e)}"
 
 
 # 🔄 Reset
