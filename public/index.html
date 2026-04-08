@@ -33,16 +33,14 @@
 <script>
 let state = { position: 0, goal: 2 };
 
-// detect if running on Vercel or local
-const API_BASE =
-  window.location.hostname === "127.0.0.1" ||
-  window.location.hostname === "localhost"
-    ? ""
-    : "/api";
+// ✅ Always use same origin (works on Render + local)
+const API_BASE = window.location.origin;
 
 function draw() {
+  if (!state) return;
+
   let grid = "";
-  for (let i = 0; i <= state.goal + 2; i++) {
+  for (let i = 0; i <= (state.goal ?? 2) + 2; i++) {
     let cls = "cell";
     if (i === state.position) cls += " agent";
     if (i === state.goal) cls += " goal";
@@ -52,29 +50,61 @@ function draw() {
 }
 
 async function reset() {
-  const res = await fetch(`${API_BASE}/reset`);
-  const data = await res.json();
-  state = data.state;
-  draw();
+  try {
+    const res = await fetch(`${API_BASE}/reset`);
+    const data = await res.json();
+
+    if (!data || data.error) {
+      console.error("Reset error:", data);
+      return;
+    }
+
+    state = data.state;
+    draw();
+  } catch (err) {
+    console.error("Reset failed:", err);
+  }
 }
 
 async function move(action) {
-  const res = await fetch(`${API_BASE}/step/${action}`);
-  const data = await res.json();
-  state = data.state;
-  draw();
+  try {
+    const res = await fetch(`${API_BASE}/step/${action}`);
+    const data = await res.json();
+
+    if (!data || data.error) {
+      console.error("Step error:", data);
+      return;
+    }
+
+    state = data.state;
+    draw();
+  } catch (err) {
+    console.error("Move failed:", err);
+  }
 }
 
 async function autoPlay() {
   let interval = setInterval(async () => {
-    const res = await fetch(`${API_BASE}/auto`);
-    const data = await res.json();
-    state = data.state;
-    draw();
+    try {
+      const res = await fetch(`${API_BASE}/auto`);
+      const data = await res.json();
 
-    if (data.done) {
+      if (!data || data.error) {
+        console.error("Auto error:", data);
+        clearInterval(interval);
+        return;
+      }
+
+      state = data.state;
+      draw();
+
+      if (data.done) {
+        clearInterval(interval);
+        alert("🎉 Goal reached!");
+      }
+    } catch (err) {
+      console.error("Auto failed:", err);
       clearInterval(interval);
-      alert("🎉 Goal reached!");
     }
   }, 500);
 }
