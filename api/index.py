@@ -1,8 +1,8 @@
 import sys
 import os
 
-# ✅ Correct base dir (for Hugging Face)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# ✅ Go to project root (one level up from /api)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, BASE_DIR)
 
 from fastapi import FastAPI
@@ -16,6 +16,10 @@ app = FastAPI()
 
 # ✅ Correct static path
 STATIC_DIR = os.path.join(BASE_DIR, "public")
+
+# ✅ Safety check (helps debugging)
+if not os.path.exists(STATIC_DIR):
+    raise RuntimeError(f"Static folder not found: {STATIC_DIR}")
 
 # Serve static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
