@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Delivery Agent Game</title>
+  <style>
+    body { font-family: Arial; text-align: center; }
+    .grid { margin: 20px; }
+    .cell {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 1px solid black;
+      line-height: 40px;
+    }
+    .agent { background: lightblue; }
+    .goal { background: lightgreen; }
+  </style>
+</head>
+<body>
+
+<h1>🚚 Delivery Agent Game</h1>
+
+<div id="grid"></div>
+
+<br>
+
+<button onclick="move(0)">⬅️ Left</button>
+<button onclick="move(1)">➡️ Right</button>
+<button onclick="reset()">🔄 Reset</button>
+<button onclick="autoPlay()">🤖 Auto Play</button>
+
+<script>
+let state = { position: 0, goal: 2 };
+
+// detect if running on Vercel or local
+const API_BASE = window.location.hostname.includes("localhost") ? "" : "/api";
+
+function draw() {
+  let grid = "";
+  for (let i = 0; i <= state.goal + 2; i++) {
+    let cls = "cell";
+    if (i === state.position) cls += " agent";
+    if (i === state.goal) cls += " goal";
+    grid += `<div class="${cls}">${i}</div>`;
+  }
+  document.getElementById("grid").innerHTML = grid;
+}
+
+async function reset() {
+  const res = await fetch(`${API_BASE}/reset`);
+  state = await res.json();
+  draw();
+}
+
+async function move(action) {
+  const res = await fetch(`${API_BASE}/step/${action}`);
+  const data = await res.json();
+  state = data.state;
+  draw();
+}
+
+async function autoPlay() {
+  let interval = setInterval(async () => {
+    const res = await fetch(`${API_BASE}/auto`);
+    const data = await res.json();
+    state = data.state;
+    draw();
+
+    if (data.done) {
+      clearInterval(interval);
+      alert("🎉 Goal reached!");
+    }
+  }, 500);
+}
+
+draw();
+</script>
+</script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,12 @@
+name: delivery-env
+description: Simple delivery agent environment
+
+actions:
+  - 0: move_left
+  - 1: move_right
+
+state:
+  - position: int
+  - goal: int
+
+reward_range: [0.0, 1.0]
